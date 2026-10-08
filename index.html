@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Myanmar Movie Recap AI</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,"Noto Sans Myanmar",sans-serif;background:#111;color:#fff}
+    .wrap{max-width:800px;margin:auto;padding:24px 16px}
+    h1{font-size:28px;margin:0 0 8px}
+    .sub{color:#aaa;margin-bottom:24px}
+    label{display:block;margin:16px 0 8px;font-weight:bold}
+    textarea,select,button{
+      width:100%;border-radius:12px;border:1px solid #444;
+      background:#1d1d1d;color:#fff;padding:14px;font-size:16px
+    }
+    textarea{min-height:220px;resize:vertical}
+    select{height:50px}
+    button{margin-top:20px;background:#6d28d9;border:0;font-weight:bold;cursor:pointer}
+    button:disabled{opacity:.6}
+    .result{margin-top:24px;background:#1d1d1d;border:1px solid #444;border-radius:12px;padding:16px;white-space:pre-wrap;line-height:1.8}
+    .status{margin-top:12px;color:#aaa}
+    .copy{background:#333;margin-top:12px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎬 Myanmar Movie Recap AI</h1>
+  <div class="sub">ဇာတ်လမ်း / မှတ်စုထည့်ပြီး မြန်မာလို Recap Script ထုတ်ပါ</div>
+
+  <label for="story">ဇာတ်လမ်း / Movie Notes</label>
+  <textarea id="story" placeholder="ဒီနေရာမှာ ဇာတ်လမ်းအကျဉ်း သို့မဟုတ် ကိုယ်ပိုင်မှတ်စုတွေ ထည့်ပါ..."></textarea>
+
+  <label for="style">Style</label>
+  <select id="style">
+    <option>မြန်မာ Storytelling</option>
+    <option>ရိုးရိုးရှင်းရှင်း</option>
+    <option>စိတ်ဝင်စားဖွယ် Cinematic</option>
+    <option>Short Video Recap</option>
+  </select>
+
+  <label for="length">Length</label>
+  <select id="length">
+    <option>Short</option>
+    <option selected>Medium</option>
+    <option>Long</option>
+  </select>
+
+  <button id="generate">✨ Generate Recap</button>
+  <div class="status" id="status"></div>
+
+  <div class="result" id="result" style="display:none"></div>
+  <button class="copy" id="copy" style="display:none">📋 Copy Script</button>
+</div>
+
+<script>
+const generate = document.getElementById("generate");
+const story = document.getElementById("story");
+const style = document.getElementById("style");
+const length = document.getElementById("length");
+const status = document.getElementById("status");
+const result = document.getElementById("result");
+const copy = document.getElementById("copy");
+
+generate.addEventListener("click", async () => {
+  if (!story.value.trim()) {
+    status.textContent = "ဇာတ်လမ်း / Notes ထည့်ပေးပါ။";
+    return;
+  }
+
+  generate.disabled = true;
+  status.textContent = "⏳ Recap ရေးနေပါတယ်...";
+  result.style.display = "none";
+  copy.style.display = "none";
+
+  try {
+    const response = await fetch("/api/recap", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        story: story.value,
+        style: style.value,
+        length: length.value
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Server error");
+    }
+
+    result.textContent = data.script || "";
+    result.style.display = "block";
+    copy.style.display = "block";
+    status.textContent = "✅ Recap အောင်မြင်စွာ ထုတ်ပြီးပါပြီ။";
+  } catch (err) {
+    status.textContent = "❌ Error: " + err.message;
+  } finally {
+    generate.disabled = false;
+  }
+});
+
+copy.addEventListener("click", async () => {
+  await navigator.clipboard.writeText(result.textContent);
+  status.textContent = "✅ Script ကို Copy လုပ်ပြီးပါပြီ။";
+});
+</script>
+</body>
+</html>
